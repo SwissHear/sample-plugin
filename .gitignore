@@ -6,3 +6,7 @@
 .DS_Store
 /build
 /captures
+
+# generated files from native code
+jniLibs/
+app/src/main/obj/

@@ -4,7 +4,16 @@
 #include <math.h>
 
 //PI value
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
+
+#define SUCCESS 0
+#define ERR     1
+
+#define FREQ_A 440.0
+#define FREQ_C 1046.502
+#define FREQ_D 1174.659
 
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, DEFAULT_LOG_TAG, __VA_ARGS__)
 
@@ -15,6 +24,20 @@ typedef struct {
 
     int right_gain;
 } this_plugin_params;
+
+/**
+    Synthesize sin wave to outBuffer.
+
+    @param samplesCnt number of samples to generate
+    @param outBuffer Buffer which will receive sin wave samples. This function allocates the required
+           memory
+
+    @return SUCCESS if sin wave generation succeeds, ERR otherwise.
+*/
+int synth_wave(int samplesCnt, float *outBuffer) {
+
+
+}
 
 //  plugin_process_interleaved_t
 void process_interleaved_buffer(void *context,
@@ -28,14 +51,17 @@ void process_interleaved_buffer(void *context,
     int i, j;
 
     //Sound wave generator
-    double frequency = 100;
-    double sampleRate = sample_rate/frequency;
-    unsigned x;
-    for (x = 0; x < buffer_frames * output_channels; ++x) {
-        output_buffer[x] = sin(2.0 * M_PI * x/sampleRate);
-        //LOGW("Sound wave generator: %f", output_buffer[x]);
-    }
+    double frequency = FREQ_D;
+    double twoPI = 2.0 * M_PI;
+    double angleIncr = twoPI * frequency / (double)sample_rate;
+    unsigned x, y;
 
+    for (x = 0; x < buffer_frames; x++) {
+        for (y = 0; y < output_channels; y++) {
+            int pos = x * output_channels + y;
+            output_buffer[pos] = (float) sin(angleIncr * x) + input_buffer[pos];
+        }
+    }
 }
 
 // plugin_process_non_interleaved_t
@@ -43,20 +69,23 @@ void process_non_interleaved_buffer(void *context,
                                     int sample_rate,
                                     int buffer_frames,
                                     int input_channels,
-                                    const float **input_buffer,
+                                    const float *input_buffer,
                                     int output_channels,
-                                    float **output_buffer) {
+                                    float *output_buffer) {
 
 
-        int i, j;
+    int i, j;
 
-        //Sound wave generator
-        double frequency = 100;
-        double sampleRate = sample_rate/frequency;
-        unsigned x;
-        for (x = 0; x < buffer_frames * input_channels; ++x) {
-            //output_buffer[x] = sin(2.0 * M_PI * x/sampleRate);
-        }
+    //Sound wave generator
+    double frequency = FREQ_D;
+    double twoPI = 2.0 * M_PI;
+    double angleIncr = twoPI * frequency / (double)sample_rate;
+    unsigned x, y;
+
+    for (x = 0; x < buffer_frames; x++) {
+        output_buffer[x] = (float)sin(angleIncr * x) + input_buffer[x];
+        output_buffer[x + buffer_frames] = output_buffer[x];
+    }
 }
 
 void init_params(void** result) {

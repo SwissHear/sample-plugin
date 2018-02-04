@@ -3,9 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/NativePlugin.iml" filepath="$PROJECT_DIR$/NativePlugin.iml" />
-      <module fileurl="file://$PROJECT_DIR$/NativePlugin.iml" filepath="$PROJECT_DIR$/NativePlugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sine-tone-generator.iml" filepath="$PROJECT_DIR$/sine-tone-generator.iml" />
     </modules>
   </component>
 </project>

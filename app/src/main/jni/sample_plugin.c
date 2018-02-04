@@ -5,25 +5,26 @@
 
 //PI value
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+#define M_PI 3.14159
 #endif
 
 #define SUCCESS 0
 #define ERR     1
 
-#define FREQ_A 440.0
-#define FREQ_C 1046.502
-#define FREQ_D 1174.659
+#define FREQ_NEUTRAL 1.0f
+#define FREQ_A       440.0f
+#define FREQ_C       1046.5f
+#define FREQ_D       1174.6f
+
+#define TWO_PI 2.f * M_PI
 
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, DEFAULT_LOG_TAG, __VA_ARGS__)
 
-
-
 typedef struct {
-    int left_gain;
+    float phase;
 
-    int right_gain;
-} this_plugin_params;
+    float phaseIncrement;
+} sine_tone_params;
 
 /**
     Synthesize sin wave to outBuffer.
@@ -48,18 +49,32 @@ void process_interleaved_buffer(void *context,
                                 int output_channels,
                                 float *output_buffer){
 
-    int i, j;
+    sine_tone_params *params = (sine_tone_params *) context;
 
-    //Sound wave generator
-    double frequency = FREQ_D;
-    double twoPI = 2.0 * M_PI;
-    double angleIncr = twoPI * frequency / (double)sample_rate;
+    if (!params) {
+        LOGW("plugin params are null");
+        return;
+    }
+
+    int i, j;
+    float frequency = FREQ_A;
+
+    if (params->phaseIncrement == 0.f) {
+        params->phaseIncrement = frequency * TWO_PI / (float)sample_rate;
+    }
+
     unsigned x, y;
 
     for (x = 0; x < buffer_frames; x++) {
         for (y = 0; y < output_channels; y++) {
             int pos = x * output_channels + y;
-            output_buffer[pos] = (float) sin(angleIncr * x) + input_buffer[pos];
+            output_buffer[pos] = (0.1f * sin(params->phase)) + input_buffer[pos];
+
+            params->phase += params->phaseIncrement;
+            if (params->phase > TWO_PI) {
+                params->phase -= TWO_PI;
+            }
+
         }
     }
 }
@@ -74,28 +89,42 @@ void process_non_interleaved_buffer(void *context,
                                     float *output_buffer) {
 
 
-    int i, j;
+    sine_tone_params *params = (sine_tone_params *) context;
 
-    //Sound wave generator
-    double frequency = FREQ_D;
-    double twoPI = 2.0 * M_PI;
-    double angleIncr = twoPI * frequency / (double)sample_rate;
+    if (!params) {
+        LOGW("plugin params are null");
+        return;
+    }
+
+    int i, j;
+    float frequency = FREQ_A;
+
+    if (params->phaseIncrement == 0.f) {
+        params->phaseIncrement = frequency * TWO_PI / (float)sample_rate;
+    }
+
     unsigned x, y;
 
     for (x = 0; x < buffer_frames; x++) {
-        output_buffer[x] = (float)sin(angleIncr * x) + input_buffer[x];
+        output_buffer[x] = (float) (0.1f * sin(params->phase)); // + input_buffer[x];
         output_buffer[x + buffer_frames] = output_buffer[x];
+
+        params->phase += params->phaseIncrement;
+        if (params->phase > TWO_PI) {
+            params->phase -= TWO_PI;
+        }
     }
 }
 
 void init_params(void** result) {
-    this_plugin_params* params = (this_plugin_params *) malloc(sizeof(this_plugin_params));
-    params->left_gain = 1;
-    params->right_gain = 1;
+    sine_tone_params* params = (sine_tone_params *) malloc(sizeof(sine_tone_params));
+    params->phase = 0.0f;
+    params->phaseIncrement = 0.0f;
     *result = params;
 }
 
 void on_value_updated(void* context, int id, int value) {
+/*
     this_plugin_params* params = (this_plugin_params *) context;
 
     if (id == 1) {
@@ -103,6 +132,7 @@ void on_value_updated(void* context, int id, int value) {
     } else if (id == 2) {
         __sync_bool_compare_and_swap(&params->right_gain, params->right_gain, value);
     }
+    */
 }
 
 void apply_config(char* config_str) {}

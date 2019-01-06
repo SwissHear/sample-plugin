@@ -57,7 +57,7 @@ void process_interleaved_buffer(void *context,
     }
 
     int i, j;
-    float frequency = FREQ_A;
+    float frequency = FREQ_D;
 
     if (params->phaseIncrement == 0.f) {
         params->phaseIncrement = frequency * TWO_PI / (float)sample_rate;
@@ -97,7 +97,7 @@ void process_non_interleaved_buffer(void *context,
     }
 
     int i, j;
-    float frequency = FREQ_A;
+    float frequency = FREQ_D;
 
     if (params->phaseIncrement == 0.f) {
         params->phaseIncrement = frequency * TWO_PI / (float)sample_rate;
@@ -106,7 +106,7 @@ void process_non_interleaved_buffer(void *context,
     unsigned x, y;
 
     for (x = 0; x < buffer_frames; x++) {
-        output_buffer[x] = (float) (0.1f * sin(params->phase)); // + input_buffer[x];
+        output_buffer[x] = (float) (0.1f * sin(params->phase) + input_buffer[x]);
         output_buffer[x + buffer_frames] = output_buffer[x];
 
         params->phase += params->phaseIncrement;
